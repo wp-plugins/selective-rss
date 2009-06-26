@@ -15,32 +15,34 @@ function filter_feeds($content) {
 	$filter = array();
 	$url = null;
 
-	$inputTag = preg_match('/\[srss (.+)\]/', $content, $matches);
-	$rawArgs = explode(',', $matches[1]);
-
-	foreach($rawArgs as $input) {
-		preg_match_all('/^(url|filter|limit)=(.+)$/i', $input, $matches);
-		$key = $matches[1][0];
-		$value = $matches[2][0];
-
-		if ($key == 'filter') {
-			$filter = explode(';', $value);
-		} else {
-			$$key = $value;	
-		}
-	}
+	$inputTag = preg_match_all('/\[srss (.+)\]/', $content, $tags);
+	foreach ($tags[1] as $tagNum => $tag) {
+		$rawArgs = explode(',', $tag);
 	
-	if ($url) {
-		$xml = parseRSS($url);
-		$items = extractRSSItems($xml, $limit, $filter);
-
-		$htmlToAdd = '';
-		foreach ($items as $item) {
-			$htmlToAdd .= '<a href="' . $item['link'] . '" target="new">' . $item['title'] . '</a>' . "<br/>\n";
-			$htmlToAdd .= $item['description'] . "<br/><br/>\n";
+		foreach($rawArgs as $input) {
+			preg_match_all('/^(url|filter|limit)=(.+)$/i', $input, $matches);
+			$key = $matches[1][0];
+			$value = $matches[2][0];
+	
+			if ($key == 'filter') {
+				$filter = explode(';', $value);
+			} else {
+				$$key = $value;	
+			}
 		}
+	
+		if ($url) {
+			$xml = parseRSS($url);
+			$items = extractRSSItems($xml, $limit, $filter);
+	
+			$htmlToAdd = '';
+			foreach ($items as $item) {
+				$htmlToAdd .= '<a href="' . $item['link'] . '" target="new">' . $item['title'] . '</a>' . "<br/>\n";
+				$htmlToAdd .= $item['description'] . "<br/><br/>\n";
+			}
 
-		$content = preg_replace('/\[srss .+\]/', $htmlToAdd, $content);
+			$content = preg_replace('/' . preg_quote($tags[0][$tagNum], '/') . '/', $htmlToAdd, $content);
+		}
 	}
 	return $content;
 }
