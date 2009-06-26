@@ -3,7 +3,7 @@
 Plugin Name: Selective RSS
 Plugin URI: http://techno-geeks.org/selective-rss
 Description: Simple Plugin that allows you to embed RSS feed items into Pages or Posts. Optionally allows you to choose how many items to display and allows you to limit items to ones that contain certain words in the titles.
-Version: 0.1.0b
+Version: 0.1.1b
 Author: Jesse R. Adams (DualTech Services, Inc.)
 Author URI: http://www.dual-tech.com/about-dualtech-services/
 */
