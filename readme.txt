@@ -4,7 +4,7 @@ Donate link: http://techno-geeks.org/selective-rss/
 Tags: rss, feed
 Requires at least: 2.0
 Tested up to: 2.8
-Stable tag: 0.1.0b
+Stable tag: 0.1.1b
 
 This is a simple Plugin that allows you to embed RSS feed items into Pages or Posts.
 
@@ -24,7 +24,9 @@ Complex: [srss url=http://www.domain.example/feed,limit=10,filter=word1;word2]
 
 == Changelog ==
 
-Nothing yet...
+0.1.1b
+---------------
+Bug Fix: Multiple RSS Feeds in same page/post. Thanks to Sheik for the report.
 
 == Frequently Asked Questions ==
 
