@@ -22,14 +22,19 @@ This is a simple Plugin that allows you to embed RSS feed items into Pages or Po
 Examples
 ---------------
 Simple: [srss url=http://www.domain.example/feed]
+
 Complex: [srss url=http://www.domain.example/feed,limit=10,filter=word1;word2]
+
 Entry Persistence: [srss url=http://www.domain.example/feed,limit=10,filter=word1;word2,persist=true,persist-duration=60]
 
 Defaults
 ---------------
 Limit: No limit
+
 Filters: None
+
 Persist: No
+
 Persist Duration: 7 days (if persist is set to true)
 
 == Changelog ==
