@@ -99,7 +99,6 @@ function filter_feeds($content) {
 						}
 					}
 				}
-				echo "<pre>" . print_r($sortedArray, true) . "</pre>";
 				
 				// Save items
 				$fp = fopen($feedStore, 'w');
