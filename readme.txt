@@ -4,7 +4,7 @@ Donate link: http://techno-geeks.org/selective-rss/
 Tags: rss, feed
 Requires at least: 2.0
 Tested up to: 2.8
-Stable tag: 0.1.1b
+Stable tag: 0.1.2b
 
 This is a simple Plugin that allows you to embed RSS feed items into Pages or Posts.
 
@@ -15,7 +15,7 @@ This is a simple Plugin that allows you to embed RSS feed items into Pages or Po
 == Installation ==
 
 1. Upload the files to the `/wp-content/plugins/` directory
-2. Verify that /wp-content/plugins/selective-rss/cache has full permissions for the web user
+2. chmod 777 /wp-content/plugins/selective-rss/persistent
 3. Activate the plugin through the 'Plugins' menu in WordPress
 4. Place [srss ...] tag into a post or page.
 

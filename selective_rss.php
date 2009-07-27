@@ -3,7 +3,7 @@
 Plugin Name: Selective RSS
 Plugin URI: http://techno-geeks.org/selective-rss
 Description: Simple Plugin that allows you to embed RSS feed items into Pages or Posts. Optionally allows you to choose how many items to display and allows you to limit items to ones that contain certain words in the titles.
-Version: 0.1.2b
+Version: 0.1.1b
 Author: Jesse R. Adams (DualTech Services, Inc.)
 Author URI: http://www.dual-tech.com/about-dualtech-services/
 */
@@ -39,7 +39,7 @@ function filter_feeds($content) {
 			$items = extractRSSItems($xml, $limit, $filter);
 			
 			if ($persist && $persistDuration > 0) {
-				$feedStore = WP_CONTENT_DIR . '/plugins/selective-rss/persistent';
+				$feedStore = WP_CONTENT_DIR . '/plugins/selective-rss/persistent/' . md5($url);
 				
 				// Fetch stored items
 				$persistentItems = array();
@@ -57,41 +57,70 @@ function filter_feeds($content) {
 					fclose($fp);				
 				}
 				
-				$today = date('mdY');
+				$today = date('Ymd');
 				if (count($persistentItems) !== 0) {
 					// Prune old items
 					foreach ($persistentItems as $key => $item) {
-						if ($items['persistUntil'] <= $today) {
+						$expiration = (int)$item['persistUntil'];
+						$today = (int)$today;
+						if ($expiration <= $today) {
 							unset($persistentItems[$key]);
 						}
 					}
 				}
-				
-				// Add new items
-				$persistUntil = date('mdY', strtotime('+' . $persist_duration . ' day'));
-				foreach ($items as $key => $item) {
-					$feedId = md5($item['link']);
-					if (!array_key_exists($feedId, $persistentItems)) {
-						$item['persistUntil'] = $persistUntil;
-						$persistentItems[$feedId] = $item;
+
+				if (count($items) !== 0) {
+					// Add new items
+					$persistUntil = date('Ymd', strtotime('+' . $persist_duration . ' day'));
+					foreach ($items as $key => $item) {
+						$feedId = md5($item['link']);
+						if (!array_key_exists($feedId, $persistentItems)) {
+							$item['persistUntil'] = $persistUntil;
+							$persistentItems[$feedId] = $item;
+						}
 					}
 				}
+				
+				$sortedArray = array();
+				foreach ($persistentItems as $key => $item) {
+					$sortedArray[date('YmdHis', strtotime($item['pubdate']))][] = $item;
+				}
+				krsort($sortedArray);	
+				
+				if ($limit) {
+					$count = 1;
+					foreach ($sortedArray as $date => $itemArray) {
+						foreach ($itemArray as $key => $item) {
+							if ($count > $limit) {
+								unset($sortedArray[$date][$key]);
+							}
+							
+							$count++;
+						}
+					}
+				}
+				echo "<pre>" . print_r($sortedArray, true) . "</pre>";
 				
 				// Save items
 				$fp = fopen($feedStore, 'w');
 				fwrite($fp, serialize($persistentItems));
 				fclose($fp);			
 				
-				$items = $persistentItems;
+				$items = $sortedArray;
 			}
 	
 			// Build the HTML to display
-			$htmlToAdd = '';
-			foreach ($items as $item) {
-				$htmlToAdd .= '<a href="' . $item['link'] . '" target="new">' . $item['title'] . '</a>' . "<br/>\n";
-				$htmlToAdd .= $item['description'] . "<br/><br/>\n";
+			if (count($items) !== 0) {
+				$htmlToAdd = '';
+				foreach ($items as $date => $itemArray) {
+					foreach ($itemArray as $item) {
+						$htmlToAdd .= '<a href="' . $item['link'] . '" target="new">' . $item['title'] . '</a>' . "<br/>\n";
+						$htmlToAdd .= $item['description'] . "<br/><br/>\n";
+					}
+				}
+			} else {
+				$htmlToAdd = 'There are new items at this time.';
 			}
-
 			$content = preg_replace('/' . preg_quote($tags[0][$tagNum], '/') . '/', $htmlToAdd, $content);
 		}
 	}
