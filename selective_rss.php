@@ -14,13 +14,16 @@ function filter_feeds($content) {
 	$limit = null;
 	$filter = array();
 	$url = null;
+	$persistDuration = 7;
+	$persist = false;
 
 	$inputTag = preg_match_all('/\[srss (.+)\]/', $content, $tags);
 	foreach ($tags[1] as $tagNum => $tag) {
 		$rawArgs = explode(',', $tag);
-	
+		
+		// Parse the arguments
 		foreach($rawArgs as $input) {
-			preg_match_all('/^(url|filter|limit)=(.+)$/i', $input, $matches);
+			preg_match_all('/^(url|filter|limit|persist|persist_duration)=(.+)$/i', $input, $matches);
 			$key = $matches[1][0];
 			$value = $matches[2][0];
 	
@@ -34,7 +37,55 @@ function filter_feeds($content) {
 		if ($url) {
 			$xml = parseRSS($url);
 			$items = extractRSSItems($xml, $limit, $filter);
+			
+			if ($persist && $persistDuration > 0) {
+				$feedStore = WP_CONTENT_DIR . '/plugins/selective-rss/persistent';
+				
+				// Fetch stored items
+				$persistentItems = array();
+				if (file_exists($feedStore)) {
+					$contents = file_get_contents($feedStore);
+					if (strlen($contents) !== 0) {
+						$persistentArray = unserialize($contents);
+						if (count($persistentArray) !== 0) {
+							$persistentItems = $persistentArray;
+						}
+					}
+				} else {
+					// Attempt to create
+					$fp = fopen($feedStore, 'w');
+					fclose($fp);				
+				}
+				
+				$today = date('mdY');
+				if (count($persistentItems) !== 0) {
+					// Prune old items
+					foreach ($persistentItems as $key => $item) {
+						if ($items['persistUntil'] <= $today) {
+							unset($persistentItems[$key]);
+						}
+					}
+				}
+				
+				// Add new items
+				$persistUntil = date('mdY', strtotime('+' . $persist_duration . ' day'));
+				foreach ($items as $key => $item) {
+					$feedId = md5($item['link']);
+					if (!array_key_exists($feedId, $persistentItems)) {
+						$item['persistUntil'] = $persistUntil;
+						$persistentItems[$feedId] = $item;
+					}
+				}
+				
+				// Save items
+				$fp = fopen($feedStore, 'w');
+				fwrite($fp, serialize($persistentItems));
+				fclose($fp);			
+				
+				$items = $persistentItems;
+			}
 	
+			// Build the HTML to display
 			$htmlToAdd = '';
 			foreach ($items as $item) {
 				$htmlToAdd .= '<a href="' . $item['link'] . '" target="new">' . $item['title'] . '</a>' . "<br/>\n";
